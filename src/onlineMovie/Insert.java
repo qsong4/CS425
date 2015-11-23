@@ -27,6 +27,7 @@ public class Insert extends JFrame implements ActionListener{
 	private JTextField staffID;
 	private JTextField theatreID;
 	private JTextField times;
+	private JTextField aaa;
 	
 	JButton btnInsert,btnReset;
 
