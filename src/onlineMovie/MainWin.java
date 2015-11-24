@@ -55,13 +55,13 @@ public class MainWin extends JFrame {
 		panel.add(lblNewLabel);
 		
 		textField = new JTextField();
-		textField.setBounds(241, 7, 191, 26);
+		textField.setBounds(219, 7, 191, 26);
 		panel.add(textField);
 		textField.setColumns(10);
 		
 		JComboBox comboBox = new JComboBox();
 		comboBox.setModel(new DefaultComboBoxModel(new String[] {"Address", "Movie Name"}));
-		comboBox.setBounds(433, 8, 100, 27);
+		comboBox.setBounds(422, 8, 111, 27);
 		panel.add(comboBox);
 		
 		JButton btnNewButton = new JButton("New button");
