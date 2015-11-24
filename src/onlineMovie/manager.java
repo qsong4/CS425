@@ -38,21 +38,7 @@ public class manager extends JFrame implements ActionListener {
 	private JTable table;
 	private JButton Modify;
 
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					manager frame = new manager();
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
+
 
 	/**
 	 * Create the frame.
