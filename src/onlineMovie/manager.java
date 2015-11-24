@@ -38,8 +38,6 @@ public class manager extends JFrame implements ActionListener {
 	private JTable table;
 	private JButton Modify;
 
-
-
 	/**
 	 * Create the frame.
 	 */
@@ -122,6 +120,7 @@ public class manager extends JFrame implements ActionListener {
 			conn = oc.getConnection();
 	        ps = conn.prepareStatement(sql);
 	        ps.setInt(1, staffID);
+	        System.out.println(sql);
 	        ResultSet rs = ps.executeQuery();
 	        if(!rs.next()){
 	        	JOptionPane.showMessageDialog(null,"The staff does not have working schedule！", "System Information", JOptionPane.ERROR_MESSAGE);
