@@ -4,6 +4,8 @@ import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -27,21 +29,24 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
-public class MainWin extends JFrame implements ActionListener {
+public class MainWin extends JFrame implements ActionListener, ItemListener {
 
 	private JPanel contentPane;
 	private JTextField textField;
 	private JTable table;
 	private JButton btnSearch;
+	private JComboBox comboBox;
 	
 	JPopupMenu popupMenu;
 	
+	public static String select[] = {"Address","Movie Name"};
 	public static int row = 20;
-	public static String ar[][] = new String[row][5];
+	public static String ar[][] = new String[row][6];
 	public static final  Object columnName[] = {
-	        "Movie Name", "Theatre Name","Director","Time", "Price"
+	        "Movie Name", "Theatre Name","Director","Time", "Price","Location"
 	    };
 
+	public String type = "Address";
 	/**
 	 * Launch the application.
 	 */
@@ -84,9 +89,10 @@ public class MainWin extends JFrame implements ActionListener {
 		panel.add(textField);
 		textField.setColumns(10);
 		
-		JComboBox comboBox = new JComboBox();
-		comboBox.setModel(new DefaultComboBoxModel(new String[] {"Address", "Movie Name"}));
+		comboBox = new JComboBox();
+		comboBox.setModel(new DefaultComboBoxModel(select));
 		comboBox.setBounds(422, 8, 111, 27);
+		comboBox.addItemListener(this);
 		panel.add(comboBox);
 		
 		btnSearch = new JButton("Search");
@@ -98,14 +104,14 @@ public class MainWin extends JFrame implements ActionListener {
 		contentPane.add(scrollPane);
 		
 		table = new JTable(ar,columnName);
+		table.setEnabled(false);
 		scrollPane.setViewportView(table);
 	
 	
 		table.addMouseListener(new MouseAdapter() {
 	          public void mousePressed(MouseEvent e) {
 	              if (e.isPopupTrigger()) {  
-	      			
-	    				System.out.println("dsa");
+	      		
 	    				 int row = e.getY() / table.getRowHeight();
 	                     popupMenu.show(e.getComponent(), e.getX(), e.getY());
 	    			
@@ -123,45 +129,66 @@ public class MainWin extends JFrame implements ActionListener {
 	
 	}
 	
-	public void addSearch(String address){
+	public void search(String parameter){
 		OracleDbManager oc = new OracleDbManager();
 		PreparedStatement ps ;
 		Connection conn;
+		String sql2 = " select x.moviename,x.theatrename,x.director,y.DATETIME,y.PRICE,x.location from(  "
+                +"select a.movieID,a.name moviename,b.name theatrename,a.director,b.location location"
+                +"  from movie a, theatre b, play c"
+                +" where a.movieID = c.movieID"
+                +"   and c.theatreID = b.theatreID"
+                +"   and b.location like '%?%') x, schedule y, movieschedule z"
+             +" where y.scheduleID = z.scheduleID"
+             +"  and z.movieID = x.movieID ";
+		
+	    String sql3 = "select x.moviename,x.theatre,x.director,y.DATETIME,y.PRICE,x.location from ("
+				      +"select a.name moviename,c.name theatre,a.director,c.location,a.movieID"
+				       +" from movie a, play b, theatre c"
+				       +" where a.movieID = b.movieID"
+				        +" and c.theatreID = b.theatreID"
+				         +" and a.name like '%?%') x, schedule y,movieschedule z"
+				 +" where x.movieid = z.movieid"
+				  +" and z.scheduleid = y.scheduleid" ;
+		
 		try{
 		
-		
-		String sql = " select x.moviename,x.theatrename,x.director,y.DATETIME,y.PRICE from(  "
-                          +"select a.movieID,a.name moviename,b.name theatrename,a.director"
-                          +"  from movie a, theatre b, play c"
-                          +" where a.movieID = c.movieID"
-                          +"   and c.theatreID = b.theatreID"
-                          +"   and b.location like ?) x, schedule y, movieschedule z"
-                       +" where y.scheduleID = z.scheduleID"
-                       +"  and z.movieID = x.movieID ";
-		
+		if(type.equals("address")){
+
+		String sql =  sql2.replace("?", parameter);
 		
 			conn = oc.getConnection();
 	        ps = conn.prepareStatement(sql);
-	        ps.setString(1,address);
-	        System.out.println(sql);
 	        ResultSet rs = ps.executeQuery();
 	    
-
-	        
-	        	
-	        
-	        	
 	    	    while(rs.next()){
 	    	    	int j=0;
-	    	    	System.out.println("ssss");
-	    	    	for(int i=0;i<5;i++){
+	    	    	for(int i=0;i<6;i++){
 	    	    	ar[j][i] = rs.getString(i+1);
 	    	    	}
 	    	    	
 	    	        j++;
 	    	    
 	    	        }
-	        
+		}
+		else if(type.equals("Movie Name")){
+
+			String sql =  sql3.replace("?", parameter);
+			conn = oc.getConnection();
+			
+	        ps = conn.prepareStatement(sql);
+	        ResultSet rs = ps.executeQuery();
+	    
+	    	    while(rs.next()){
+	    	    	int j=0;
+	    	    	for(int i=0;i<6;i++){
+	    	    	ar[j][i] = rs.getString(i+1);
+	    	    	}
+	    	    	
+	    	        j++;
+	    	    
+	    	        }
+		}
 	        
 
 	    
@@ -178,11 +205,20 @@ public class MainWin extends JFrame implements ActionListener {
 	public void actionPerformed(ActionEvent e) {
 		// TODO Auto-generated method stub
 		if(e.getSource()==btnSearch){
-			String a = textField.getText();
-            String address = "'%"+a+"%'";
-			System.out.println(address);
-			addSearch(address);
+			String parameter = textField.getText();
+	
+			search(parameter);
 			
+		}
+	}
+
+	@Override
+	public void itemStateChanged(ItemEvent e) {
+		// TODO Auto-generated method stub
+		if(e.getSource()==comboBox){
+			if(e.getStateChange()==ItemEvent.SELECTED){
+				type=(String)comboBox.getSelectedItem();
+			}
 		}
 	}
 
