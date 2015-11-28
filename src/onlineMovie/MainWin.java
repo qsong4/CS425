@@ -28,6 +28,7 @@ import javax.swing.JButton;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.border.EtchedBorder;
 
 public class MainWin extends JFrame implements ActionListener, ItemListener {
 
@@ -36,76 +37,74 @@ public class MainWin extends JFrame implements ActionListener, ItemListener {
 	private JTable table;
 	private JButton btnSearch;
 	private JComboBox comboBox;
+	private JMenuItem purchase,comment;
+	public int ID;
+	
 	
 	JPopupMenu popupMenu;
 	
 	public static String select[] = {"Address","Movie Name"};
 	public static int row = 20;
-	public static String ar[][] = new String[row][6];
+	public static String ar[][] = new String[row][7];
 	public static final  Object columnName[] = {
-	        "Movie Name", "Theatre Name","Director","Time", "Price","Location"
+	        "Movie Name", "Theatre Name","Director","Time", "Price","Location","ID"
 	    };
 
 	public String type = "Address";
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					MainWin frame = new MainWin();
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
+
 
 	/**
 	 * Create the frame.
 	 */
-	public MainWin() {
+	public MainWin(int iD) {
+		
+		ID = iD;
+		System.out.println(ID);
+		
 		setTitle("Online Ticket");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 666, 449);
+		setBounds(100, 100, 758, 454);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
 		
 		JPanel panel = new JPanel();
-		panel.setBounds(6, 6, 654, 40);
+		panel.setBounds(6, 6, 746, 40);
 		contentPane.add(panel);
 		panel.setLayout(null);
 		
-		JLabel lblNewLabel = new JLabel("Welcome to Online Ticket System");
-		lblNewLabel.setBounds(6, 6, 223, 28);
+		JLabel lblNewLabel = new JLabel("Welcome  to Online Ticket System");
+		lblNewLabel.setBounds(37, 6, 223, 28);
 		panel.add(lblNewLabel);
 		
 		textField = new JTextField();
-		textField.setBounds(219, 7, 191, 26);
+		textField.setBounds(299, 7, 191, 26);
 		panel.add(textField);
 		textField.setColumns(10);
 		
 		comboBox = new JComboBox();
 		comboBox.setModel(new DefaultComboBoxModel(select));
-		comboBox.setBounds(422, 8, 111, 27);
+		comboBox.setBounds(502, 8, 124, 27);
 		comboBox.addItemListener(this);
 		panel.add(comboBox);
 		
 		btnSearch = new JButton("Search");
-		btnSearch.setBounds(531, 7, 117, 29);
+		btnSearch.setBounds(623, 7, 117, 29);
 		panel.add(btnSearch);
 		btnSearch.addActionListener(this);
 		JScrollPane scrollPane = new JScrollPane();
-		scrollPane.setBounds(6, 58, 535, 363);
+		scrollPane.setBounds(6, 58, 611, 363);
 		contentPane.add(scrollPane);
 		
 		table = new JTable(ar,columnName);
-		table.setEnabled(false);
 		scrollPane.setViewportView(table);
+		
+		JPanel panel_1 = new JPanel();
+		panel_1.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
+		panel_1.setBounds(629, 58, 123, 363);
+		contentPane.add(panel_1);
+		panel_1.setLayout(null);
 	
 	
 		table.addMouseListener(new MouseAdapter() {
@@ -120,20 +119,22 @@ public class MainWin extends JFrame implements ActionListener, ItemListener {
 		});
 		
 		popupMenu = new JPopupMenu();
-		JMenuItem purchase = new JMenuItem("Purchase");
-        JMenuItem comment = new JMenuItem("Comment");
-      
+		purchase = new JMenuItem("Purchase");
+        comment = new JMenuItem("Comment");
+        purchase.addActionListener(this);
+        comment.addActionListener(this);
         popupMenu.add(purchase);
         popupMenu.add(comment);
 
 	
 	}
-	
+
+
 	public void search(String parameter){
 		OracleDbManager oc = new OracleDbManager();
 		PreparedStatement ps ;
 		Connection conn;
-		String sql2 = " select x.moviename,x.theatrename,x.director,y.DATETIME,y.PRICE,x.location from(  "
+		String sql2 = " select x.moviename,x.theatrename,x.director,y.DATETIME,y.PRICE,x.location,y.scheduleid from(  "
                 +"select a.movieID,a.name moviename,b.name theatrename,a.director,b.location location"
                 +"  from movie a, theatre b, play c"
                 +" where a.movieID = c.movieID"
@@ -142,7 +143,7 @@ public class MainWin extends JFrame implements ActionListener, ItemListener {
              +" where y.scheduleID = z.scheduleID"
              +"  and z.movieID = x.movieID ";
 		
-	    String sql3 = "select x.moviename,x.theatre,x.director,y.DATETIME,y.PRICE,x.location from ("
+	    String sql3 = "select x.moviename,x.theatre,x.director,y.DATETIME,y.PRICE,x.location,y.scheduleid from ("
 				      +"select a.name moviename,c.name theatre,a.director,c.location,a.movieID"
 				       +" from movie a, play b, theatre c"
 				       +" where a.movieID = b.movieID"
@@ -153,41 +154,53 @@ public class MainWin extends JFrame implements ActionListener, ItemListener {
 		
 		try{
 		
-		if(type.equals("address")){
-
+		if(type.equals("Address")){
+			boolean f1 = true;
 		String sql =  sql2.replace("?", parameter);
 		
 			conn = oc.getConnection();
 	        ps = conn.prepareStatement(sql);
 	        ResultSet rs = ps.executeQuery();
-	    
+	        int j=0;
 	    	    while(rs.next()){
-	    	    	int j=0;
-	    	    	for(int i=0;i<6;i++){
+	    	    	f1 = false;
+	    	    	for(int i=0;i<7;i++){
 	    	    	ar[j][i] = rs.getString(i+1);
 	    	    	}
 	    	    	
 	    	        j++;
 	    	    
 	    	        }
+	    	    
+	    	    if(f1){
+	    	    	JOptionPane.showMessageDialog(null,"Can not Find the movie", "System Information", JOptionPane.ERROR_MESSAGE);
+	    			textField.setText("");
+	    	    }
+	    	    
 		}
+		
 		else if(type.equals("Movie Name")){
-
-			String sql =  sql3.replace("?", parameter);
+            boolean f2 = true;
+			String sql4 =  sql3.replace("?", parameter);
 			conn = oc.getConnection();
 			
-	        ps = conn.prepareStatement(sql);
+	        ps = conn.prepareStatement(sql4);
 	        ResultSet rs = ps.executeQuery();
-	    
+	        int j=0;
 	    	    while(rs.next()){
-	    	    	int j=0;
-	    	    	for(int i=0;i<6;i++){
+	    	    	f2 = false;
+	    	    	for(int i=0;i<7;i++){
 	    	    	ar[j][i] = rs.getString(i+1);
 	    	    	}
 	    	    	
 	    	        j++;
 	    	    
 	    	        }
+	    	    
+	    	    if(f2){
+	    	    	JOptionPane.showMessageDialog(null,"Can not Find the movie", "System Information", JOptionPane.ERROR_MESSAGE);
+	    			textField.setText("");
+	    	    }
 		}
 	        
 
@@ -210,6 +223,20 @@ public class MainWin extends JFrame implements ActionListener, ItemListener {
 			search(parameter);
 			
 		}
+		
+		else if(e.getSource()==purchase){
+			
+			int row = table.getSelectedRow();
+			String movieName = (String)table.getValueAt(row, 0);
+			String theatreName = (String)table.getValueAt(row, 1);
+			String price = (String)table.getValueAt(row, 4);
+			String scheduleid = (String)table.getValueAt(row, 6);
+			System.out.println(scheduleid);
+			purchase p = new purchase();
+			p.setVisible(true);
+			
+			
+		}
 	}
 
 	@Override
@@ -221,6 +248,4 @@ public class MainWin extends JFrame implements ActionListener, ItemListener {
 			}
 		}
 	}
-
-
 }
