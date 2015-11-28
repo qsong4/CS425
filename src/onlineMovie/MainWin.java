@@ -57,7 +57,7 @@ public class MainWin extends JFrame implements ActionListener, ItemListener {
 	 * Create the frame.
 	 */
 	public MainWin(int iD) {
-		
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		ID = iD;
 		System.out.println(ID);
 		
@@ -229,10 +229,13 @@ public class MainWin extends JFrame implements ActionListener, ItemListener {
 			int row = table.getSelectedRow();
 			String movieName = (String)table.getValueAt(row, 0);
 			String theatreName = (String)table.getValueAt(row, 1);
+			String time = (String)table.getValueAt(row, 3);
 			String price = (String)table.getValueAt(row, 4);
 			String scheduleid = (String)table.getValueAt(row, 6);
-			System.out.println(scheduleid);
-			purchase p = new purchase();
+			String id = String.valueOf(ID);
+            String items[] ={movieName,theatreName,time,price,scheduleid,id};
+            
+			purchase p = new purchase(items);
 			p.setVisible(true);
 			
 			
