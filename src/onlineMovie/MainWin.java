@@ -30,6 +30,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.border.EtchedBorder;
 
+import MovieComments.Main;
+import MovieComments.QueryInputAndOutput;
+
 public class MainWin extends JFrame implements ActionListener, ItemListener {
 
 	private JPanel contentPane;
@@ -242,8 +245,33 @@ public class MainWin extends JFrame implements ActionListener, ItemListener {
 		}
 		
 		else if(e.getSource()==comment){//这里是选择评论触发的事件
-			
-			
+			OracleDbManager oc = new OracleDbManager();
+			PreparedStatement ps ;
+			Connection conn=null;
+
+			try {
+				int row = table.getSelectedRow();
+				int movie_id;
+				conn =oc.getConnection();
+				String s ="select movieid from movie where name=? ";
+				 ps = conn.prepareStatement(s);
+
+					ps.setString(1, (String)table.getValueAt(row, 0));
+					ResultSet rs = ps.executeQuery();
+					if(rs.next()){
+
+						movie_id=rs.getInt(1);
+
+						Main m = new Main(conn,movie_id,ID);
+					    
+					}
+//				movie_id = QueryInputAndOutput.getInt(conn, "select movieid from movie where name="+(String)table.getValueAt(row, 0), "movieid");
+				
+			} catch (SQLException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		
 			
 			
 		}
