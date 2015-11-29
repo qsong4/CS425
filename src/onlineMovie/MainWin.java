@@ -240,6 +240,13 @@ public class MainWin extends JFrame implements ActionListener, ItemListener {
 			
 			
 		}
+		
+		else if(e.getSource()==comment){//这里是选择评论触发的事件
+			
+			
+			
+			
+		}
 	}
 
 	@Override
