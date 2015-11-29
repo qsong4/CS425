@@ -31,7 +31,7 @@ public class Login extends JFrame implements ActionListener {
 	private JTextField textField;
 	private JPasswordField passwordField;
 	private JButton btnRegister,btnLogin,btnSkip;
-	
+	static Login frame;
 	public boolean flg = true;
 	private JButton btnAdmin;
 
@@ -42,7 +42,7 @@ public class Login extends JFrame implements ActionListener {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					Login frame = new Login();
+					 frame = new Login();
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -180,6 +180,7 @@ public class Login extends JFrame implements ActionListener {
 				textField.setText("");
 				passwordField.setText(null);
 			}
+			frame.setVisible(false);
 			
 		}
 		
@@ -217,6 +218,7 @@ public class Login extends JFrame implements ActionListener {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
+			frame.setVisible(false);
 		}
 	}
 }

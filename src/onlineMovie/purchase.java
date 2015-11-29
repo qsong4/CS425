@@ -4,12 +4,16 @@ import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -41,6 +45,32 @@ public class purchase extends JFrame implements ActionListener {
 	JButton btnPurchase,btnCancel;
 	private JTextField textField_7;
 
+	public boolean isCard(String str){ 
+		   Pattern pattern = Pattern.compile("^\\d{19}$"); 
+		   Matcher isNum = pattern.matcher(str);
+		   if( !isNum.matches() ){
+		       return false; 
+		   } 
+		   return true; 
+		}
+	
+	public boolean isNum3(String str){ 
+		   Pattern pattern = Pattern.compile("^\\d{3}$"); 
+		   Matcher isNum = pattern.matcher(str);
+		   if( !isNum.matches() ){
+		       return false; 
+		   } 
+		   return true; 
+		}
+	public boolean isNum(String str){ 
+		   Pattern pattern = Pattern.compile("[0-9]*"); 
+		   Matcher isNum = pattern.matcher(str);
+		   if( !isNum.matches() ){
+		       return false; 
+		   } 
+		   return true; 
+		}
+	
     public boolean paymentInfo(){
     	boolean f = true;
 		OracleDbManager oc = new OracleDbManager();
@@ -57,8 +87,7 @@ public class purchase extends JFrame implements ActionListener {
         
         if(rs.next()){
         	creditCardNum = rs.getString(1);
-        	String aaa = rs.getString(2);
-            expiredate = aaa.substring(8, 10)+"/"+aaa.substring(10,13);
+            expiredate = rs.getString(2);
         	CVV = rs.getString(3);
         	balance = rs.getString(4);
         	
@@ -90,18 +119,62 @@ public class purchase extends JFrame implements ActionListener {
     	
     }
 
-    public void purchase(){
+    public void publicPurchase(){
+    	
     	OracleDbManager oc = new OracleDbManager();
 		PreparedStatement ps ;
+		
+		Connection conn;
+      int balance = Integer.parseInt(textField_7.getText());
+      int a =Integer.parseInt(price);
+      if(balance>a){
+    	  
+      
+		String sql2 = "insert into purchase values (?,?,?) ";
+		try {
+			StringBuilder str=new StringBuilder();
+			Random random=new Random();
+			for(int i=0;i<8;i++){
+				str.append(random.nextInt(10));
+			}
+			int ticketID=Integer.parseInt(str.toString());
+			
+			
+		conn = oc.getConnection();	
+		ps=conn.prepareStatement(sql2);
+		ps.setInt(1, Integer.parseInt(scheduleid));
+		ps.setInt(2, ID);
+		ps.setInt(3, ticketID);
+		int rs3 = ps.executeUpdate();
+		if(rs3==1){
+			JOptionPane.showMessageDialog(null,"Successful!", "System Information", JOptionPane.ERROR_MESSAGE);
+            
+            dispose();
+		}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+      }
+      
+      else{
+    	  JOptionPane.showMessageDialog(null,"Your balance is not enough!", "System Information", JOptionPane.ERROR_MESSAGE);
+          
+      }
+    }
+    
+    public void CustomerPurchase(){
+    	OracleDbManager oc = new OracleDbManager();
+		PreparedStatement ps,ps1,ps2,ps3 ;
 		Connection conn;
 		String sql = "select balance"
 				  + "   from customer "
 				  + "  where customerid=? ";
 		try {
 		conn = oc.getConnection();
-        ps = conn.prepareStatement(sql);
-        ps.setInt(1,ID);
-        ResultSet rs = ps.executeQuery();
+        ps1 = conn.prepareStatement(sql);
+        ps1.setInt(1,ID);
+        ResultSet rs = ps1.executeQuery();
         if(rs.next()){
         	String a = rs.getString(1);
         	int bal = Integer.parseInt(a);
@@ -109,12 +182,12 @@ public class purchase extends JFrame implements ActionListener {
         	if(bal>p){
         		int newBalance = bal-p;
         		String sql1 = "update customer set balance=? where customerid=?";
-        		ps=conn.prepareStatement(sql1);
-        		ps.setInt(1, newBalance);
+        		ps2=conn.prepareStatement(sql1);
+        		ps2.setInt(1, newBalance);
         		System.out.println(ID);
-        		ps.setInt(2, ID);
-        		int rs2 = ps.executeUpdate();
-        		System.out.println(rs2);
+        		ps2.setInt(2, ID);
+        		int rs2 = ps2.executeUpdate();
+
         		
         		StringBuilder str=new StringBuilder();
     			Random random=new Random();
@@ -122,12 +195,18 @@ public class purchase extends JFrame implements ActionListener {
     				str.append(random.nextInt(10));
     			}
     			int ticketID=Integer.parseInt(str.toString());
+    			System.out.println(ticketID);
         		String sql2 = "insert into purchase values (?,?,?) ";
-        		ps=conn.prepareStatement(sql1);
-        		ps.setInt(1, Integer.parseInt(scheduleid));
-        		ps.setInt(2, ID);
-        		ps.setInt(3, ticketID);
-        		int rs3 = ps.executeUpdate();
+        		ps3=conn.prepareStatement(sql2);
+        		ps3.setInt(1, Integer.parseInt(scheduleid));
+        		ps3.setInt(2, ID);
+        		ps3.setInt(3, ticketID);
+        		int rs3 = ps3.executeUpdate();
+        		if(rs3==1){
+        			JOptionPane.showMessageDialog(null,"Successful!", "System Information", JOptionPane.ERROR_MESSAGE);
+                    
+                    dispose();
+        		}
         	}
         	else{
         		JOptionPane.showMessageDialog(null,"You do not have enough balance!", "System Information", JOptionPane.ERROR_MESSAGE);
@@ -185,6 +264,7 @@ public class purchase extends JFrame implements ActionListener {
 		textField_1.setEditable(false);
 		textField_1.setColumns(10);
 		textField_1.setBounds(329, 56, 140, 26);
+
 		panel.add(textField_1);
 		
 		JLabel lblPrice = new JLabel("         Price:");
@@ -245,6 +325,7 @@ public class purchase extends JFrame implements ActionListener {
 		textField_4 = new JTextField();
 		textField_4.setColumns(10);
 		textField_4.setBounds(138, 34, 225, 26);
+
 		panel_2.add(textField_4);
 		
 		JLabel lblCvv = new JLabel("      CVV:");
@@ -254,6 +335,7 @@ public class purchase extends JFrame implements ActionListener {
 		textField_5 = new JTextField();
 		textField_5.setColumns(10);
 		textField_5.setBounds(363, 72, 106, 26);
+
 		panel_2.add(textField_5);
 		
 		JLabel lblExpireDate = new JLabel("Expire Date(MM/YY):");
@@ -263,6 +345,7 @@ public class purchase extends JFrame implements ActionListener {
 		textField_6 = new JTextField();
 		textField_6.setColumns(10);
 		textField_6.setBounds(138, 71, 160, 26);
+
 		panel_2.add(textField_6);
 		
 		JComboBox comboBox = new JComboBox();
@@ -277,6 +360,7 @@ public class purchase extends JFrame implements ActionListener {
 		textField_7 = new JTextField();
 		textField_7.setColumns(10);
 		textField_7.setBounds(138, 109, 106, 26);
+
 		panel_2.add(textField_7);
 		
 		
@@ -290,16 +374,31 @@ public class purchase extends JFrame implements ActionListener {
 		// TODO Auto-generated method stub
 		if(e.getSource()==btnPurchase){
 			if(flg){
-				purchase();
+				CustomerPurchase();
 			}
 			else{
+			
+			
+				if(!isCard(textField_4.getText())){
+					JOptionPane.showMessageDialog(null,"Wrong Card Number", "System Information", JOptionPane.ERROR_MESSAGE);
+					textField_4.setText("");
+				}
 				
+				else if(!isNum3(textField_5.getText())){
+					JOptionPane.showMessageDialog(null,"Wrong CVV Number", "System Information", JOptionPane.ERROR_MESSAGE);
+					textField_5.setText("");
+					
+				}
+				else{
+		
+				publicPurchase();
+				}
 			}
 			
 		}
 		
 		else if(e.getSource()==btnCancel){
-			
+			dispose();
 			
 		}
 		
